@@ -1,27 +1,31 @@
 import puppeteer from 'puppeteer';
 
 interface PageDoc {
-    formatData?: () => Promise<any[]>;
-    pageRoute: string;
-    nextPageLink: string;
-    nextPage?: string;
-    dataArea: string;
-    dataTableArea?: string,
-    pageLimit: number;
-    rowTableSelectorFunc?: any,
-    tableSelectorFunc?: any,
-    fetchPage?: () => Promise<any[]>;
-
+  formatData?: () => Promise<any[]>;
+  pageRoute: string;
+  nextPageLink: string;
+  nextPage?: string;
+  dataArea: string;
+  dataTableArea?: string;
+  pageLimit?: number;
+  rowTableSelectorFunc?: any;
+  tableSelectorFunc?: any;
+  fetchPage?: () => Promise<any[]>;
 }
 
-function CommonPage(this: PageDoc,
+function CommonPage(
+    this: PageDoc,
     {
-        pageRoute, nextPageLink,
-        nextPage, dataArea, dataTableArea,
+        pageRoute,
+        nextPageLink,
+        nextPage,
+        dataArea,
+        dataTableArea,
         pageLimit,
         rowTableSelectorFunc,
         tableSelectorFunc,
-    } : PageDoc) {
+    }: PageDoc,
+) {
     this.pageRoute = pageRoute;
     this.pageLimit = pageLimit;
     this.nextPageLink = nextPageLink;
@@ -45,20 +49,20 @@ function CommonPage(this: PageDoc,
             page.setDefaultNavigationTimeout(0);
             let lastPage = true;
             let pageNumber = 0;
-            const isFetching = () => lastPage && pageNumber <= this.pageLimit;
+            const isFetching = () => (this.pageLimit ? lastPage && pageNumber <= this.pageLimit : lastPage);
             const exposeRowTableFunc = async (data: any) => this.rowTableSelectorFunc(data);
 
             await page.exposeFunction('exposeRowTableFunc', exposeRowTableFunc);
-            await page.waitForSelector(
-                this.dataTableArea,
-                { visible: true },
-            );
+            await page.waitForSelector(this.dataTableArea, { visible: true });
 
             if (this.tableSelectorFunc) {
-                await page.exposeFunction('exposeTableSelectorFunc', async (data: string) => {
-                    const parsedDataLength = parseInt(data, 10);
-                    return this.tableSelectorFunc(parsedDataLength);
-                });
+                await page.exposeFunction(
+                    'exposeTableSelectorFunc',
+                    async (data: string) => {
+                        const parsedDataLength = parseInt(data, 10);
+                        return this.tableSelectorFunc(parsedDataLength);
+                    },
+                );
             }
             while (isFetching()) {
                 pageNumber++;
@@ -71,34 +75,37 @@ function CommonPage(this: PageDoc,
                     lastPage = false;
                     break;
                 }
-                await page.waitForSelector(
-                    this.dataTableArea,
-                    { visible: true },
-                );
+                await page.waitForSelector(this.dataTableArea, { visible: true });
                 const newNewsArray = await page.evaluate(async (dataTableArea) => {
                     let htmlElement = document.querySelector(dataTableArea);
                     htmlElement = Array.from(htmlElement.children);
                     // @ts-ignore
                     if (typeof window.exposeTableSelectorFunc === 'function') {
                         // @ts-ignore
-                        const toBeRemovedIndex = await window.exposeTableSelectorFunc(`${htmlElement.length}`);
-                        htmlElement = htmlElement.filter((value: any, index: number) => !toBeRemovedIndex.includes(index));
+                        const toBeRemovedIndex = await window.exposeTableSelectorFunc(
+                            `${htmlElement.length}`,
+                        );
+                        htmlElement = htmlElement.filter(
+                            (value: any, index: number) => !toBeRemovedIndex.includes(index),
+                        );
                     }
                     // @ts-ignore
-                    return Promise.all(htmlElement.map(async (item: Node) => {
-                        const xml = new XMLSerializer();
-                        // @ts-ignore
-                        return window.exposeRowTableFunc(xml.serializeToString(item) as string);
-                    }));
+                    return Promise.all(
+                        htmlElement.map(async (item: Node) => {
+                            const xml = new XMLSerializer();
+                            // @ts-ignore
+                            return window.exposeRowTableFunc(
+                xml.serializeToString(item) as string,
+                            );
+                        }),
+                    );
                 }, this.dataTableArea);
                 dataArray = dataArray.concat(newNewsArray);
                 if (this.nextPageLink === null) {
                     break;
                 }
                 try {
-                    await page.waitForSelector(
-                        this.nextPageLink,
-                    );
+                    await page.waitForSelector(this.nextPageLink);
                     await page.click(this.nextPageLink);
                     await page.waitForTimeout(500);
                     await page.waitForSelector(this.dataTableArea, { visible: true });

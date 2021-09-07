@@ -8,8 +8,6 @@ const { JSDOM } = jsdom;
 
 export default async function BizmanduSiteParser() {
     const bizmanduSelector = (element) => {
-        console.log(element);
-
         const dom = new JSDOM(element);
 
         const { href, title } = dom.window.document.body.querySelector('a');
@@ -57,7 +55,6 @@ export const shareKarobar = async () => {
             dataArea: 'body > div.wraper-section > div:nth-child(3) > div',
             nextPage: 'https://www.karobardaily.com/category/share_bazaar',
             nextPageLink: 'body > div.wraper-section > div:nth-child(3) > div > div:nth-child(14) > ul > li:last-child > i > a',
-            pageLimit: 5,
             rowTableSelectorFunc,
             tableSelectorFunc,
         },
