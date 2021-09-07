@@ -10,8 +10,6 @@ Data parser is built on top of puppeteer and jsdom for custom element selector.
 - custom table area selector 
 - Work for both SPA and server side rendering.
 
-Data Parser is a lightweight markup language based on the puppeteer
-
 ## Tech
 Data Parser uses a number of open source projects to work properly:
 
@@ -20,7 +18,7 @@ Data Parser uses a number of open source projects to work properly:
 
 ## Installation
 
-Dillinger requires [Node.js](https://nodejs.org/) v14+ to run.
+Data Parser requires [Node.js](https://nodejs.org/) v14+ to run.
 
 Clone the git repo and start the server.
 
