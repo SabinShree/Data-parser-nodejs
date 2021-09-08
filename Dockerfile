@@ -1,8 +1,7 @@
 # using node image file for running this app
 FROM node:15.5-alpine
 
-# creating Login-Api folder in container
-WORKDIR /smtm-news-parser-Api
+WORKDIR /data-parser-Api
 
 # concept of caching. use package.json if it is not present.
 ADD package*.json ./

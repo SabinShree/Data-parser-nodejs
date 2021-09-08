@@ -2,14 +2,14 @@ version: "3.4"
 
 services:
   node:
-    container_name: smtm-news-parser-api
+    container_name: data-parser-api
     build: .
     command: npm start
     restart: always
     env_file:
       - .env
     volumes:
-      - .:/usr/src/smtm-news-parser-api
+      - .:/usr/src/data-parser-api
     ports:
       - "4014:4014"
 
